@@ -1,0 +1,24 @@
+// Bollinger Bandwidth Strategy for MultiCharts
+// Uses Bollinger band width as a condition to enter trades
+Inputs: Length(20), NumDevsUp(2), NumDevsDn(2), BandwidthThreshold(0.02);
+
+Variables: UpperBand(0), LowerBand(0), Bandwidth(0);
+
+UpperBand = BollingerBand(Close, Length, NumDevsUp);
+LowerBand = BollingerBand(Close, Length, -NumDevsDn);
+Bandwidth = (UpperBand - LowerBand) / Close;
+
+// Enter long when the band width is narrow and price breaks above the upper band
+If MarketPosition = 0 and Bandwidth < BandwidthThreshold and Close Crosses Above UpperBand Then
+Buy ("BBandLong") Next Bar at Market;
+
+// Enter short when the band width is narrow and price breaks below the lower band
+If MarketPosition = 0 and Bandwidth < BandwidthThreshold and Close Crosses Below LowerBand Then
+Sell Short ("BBandShort") Next Bar at Market;
+
+// Exit rules: close trades when price crosses the opposite band
+If MarketPosition = 1 and Close Crosses Below LowerBand Then
+Sell ("ExitLong") Next Bar at Market;
+
+If MarketPosition = -1 and Close Crosses Above UpperBand Then
+Buy To Cover ("ExitShort") Next Bar at Market;
